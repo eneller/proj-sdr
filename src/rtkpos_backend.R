@@ -259,9 +259,9 @@ run_rtkpos <- function(rover_obs,
   dir.create(dirname(output_file), showWarnings = FALSE, recursive = TRUE)
 
   # --- 5. Build command arguments ---
+  # NOTE: -o is intentionally omitted; position output is captured from stdout
   args <- c(
     "-k", shQuote(config_file),
-    "-o", shQuote(output_file),
     "-p", as.character(posmode),
     "-m", as.character(elmask),
     "-t",
@@ -279,42 +279,58 @@ run_rtkpos <- function(rover_obs,
   message(">>> RTKPOS command:")
   message("  ", rtkpos_exe, " ", paste(args, collapse = " "))
 
-  stdout_result <- tryCatch(
+  proc_result <- tryCatch(
     suppressWarnings(
       system2(
         command = rtkpos_exe,
         args    = args,
         stdout  = TRUE,
-        stderr  = FALSE,
+        stderr  = TRUE,
         wait    = TRUE
       )
     ),
     error = function(e) {
-      list(exit_code = -1, output = paste("Error:", e$message))
+      list(stdout = "", stderr = paste("Error:", e$message), status = -1)
     }
   )
 
-  if (is.list(stdout_result)) {
-    exit_code <- -1
-    stdout_text <- stdout_result$output
+  if (is.list(proc_result)) {
+    ec <- attr(proc_result, "status")
+    exit_code   <- if (is.null(ec)) -1 else ec
+    so <- proc_result[["stdout"]]
+    raw_stdout  <- if (is.null(so)) character(0) else so
+    se <- proc_result[["stderr"]]
+    stderr_text <- if (is.null(se)) "" else paste(se, collapse = "\n")
   } else {
-    exit_code <- attr(stdout_result, "status")
-    if (is.null(exit_code)) exit_code <- 0
-    stdout_text <- if (is.null(stdout_result)) "" else {
-      paste(stdout_result, collapse = "\n")
-    }
+    ec <- attr(proc_result, "status")
+    exit_code   <- if (is.null(ec)) 0 else ec
+    raw_stdout  <- if (is.null(proc_result)) character(0) else proc_result
+    stderr_text <- ""
   }
 
-  if (exit_code != 0 || !file.exists(output_file)) {
-    warning("RTKPOS processing may have failed. Exit code: ", exit_code)
+  # --- 7. Filter progress lines from stdout, write position data to file ---
+  # rnx2rtkp prints "processing : ..." progress lines to stdout
+  # Actual position data lines start with a date (yyyy/mm/dd)
+  pos_lines <- grep("^[0-9]{4}/[0-9]{2}/[0-9]{2}", raw_stdout, value = TRUE)
+  stdout_text <- paste(raw_stdout, collapse = "\n")
+
+  if (length(pos_lines) > 0) {
+    writeLines(pos_lines, con = output_file)
   }
 
-  # --- 7. Return structured result ---
+  if (exit_code != 0 || length(pos_lines) == 0) {
+    warning("RTKPOS processing may have failed. Exit code: ", exit_code,
+            " | Epochs: ", length(pos_lines))
+  }
+
+  # --- 8. Return structured result ---
   result <- list(
     exit_code   = exit_code,
     stdout      = stdout_text,
+    stderr      = stderr_text,
     output_file = output_file,
     config_file = config_file,
+    epochs      = length(pos_lines),
     command     = paste(shQuote(rtkpos_exe), paste(args, collapse = " "))
   )
 

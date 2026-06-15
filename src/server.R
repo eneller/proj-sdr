@@ -136,11 +136,14 @@ server <- function(input, output, session) {
 
           incProgress(0.2, detail = "Running RTKPOS")
 
-          base_path <- if (has_base) input$base_file$datapath else NULL
+          # Normalize paths to use backslashes on Windows
+          rover_path <- normalizePath(input$rover_file$datapath, winslash = "\\")
+          nav_path   <- normalizePath(input$nav_file$datapath, winslash = "\\")
+          base_path  <- if (has_base) normalizePath(input$base_file$datapath, winslash = "\\") else NULL
 
           result <- run_rtkpos(
-            rover_obs  = input$rover_file$datapath,
-            nav_file   = input$nav_file$datapath,
+            rover_obs  = rover_path,
+            nav_file   = nav_path,
             base_obs   = base_path,
             posmode    = posmode_val,
             elmask     = input$pos1_elmask,
@@ -149,7 +152,7 @@ server <- function(input, output, session) {
 
           incProgress(0.8, detail = "Parsing output")
 
-          if (result$exit_code == 0 && file.exists(result$output_file)) {
+          if (result$exit_code == 0 && result$epochs > 0 && file.exists(result$output_file)) {
             df <- parse_rtkpos_output(result$output_file)
           }
 
@@ -180,6 +183,15 @@ server <- function(input, output, session) {
         )
       }
 
+      # Print stderr to console for debugging
+      if (!is.null(result$stderr) && nchar(result$stderr) > 0) {
+        cat("=== rnx2rtkp stderr ===\n", result$stderr, "\n=======================\n")
+      }
+      # Also print stdout
+      if (!is.null(result$stdout) && nchar(result$stdout) > 0) {
+        cat("=== rnx2rtkp stdout ===\n", result$stdout, "\n=======================\n")
+      }
+
     }, error = function(e) {
       rv$status <- "Error"
       showNotification(
@@ -195,7 +207,7 @@ server <- function(input, output, session) {
   output$trajectory_plot <- plotly::renderPlotly({
     req(rv$data, nrow(rv$data) > 0)
     p <- plot_trajectory(rv$data)
-    plotly::ggplotly(p) %>%
+    plotly::ggplotly(p) |>
       plotly::layout(
         hoverlabel = list(bgcolor = "white", font = list(size = 10))
       )
@@ -207,7 +219,7 @@ server <- function(input, output, session) {
   output$height_plot <- plotly::renderPlotly({
     req(rv$data, nrow(rv$data) > 0)
     p <- plot_height(rv$data)
-    plotly::ggplotly(p) %>%
+    plotly::ggplotly(p) |>
       plotly::layout(
         hoverlabel = list(bgcolor = "white", font = list(size = 10))
       )
@@ -233,7 +245,7 @@ server <- function(input, output, session) {
         lengthMenu = c(10, 25, 50, 100)
       ),
       rownames = FALSE
-    ) %>%
+    ) |>
       DT::formatStyle(columns = num_cols, `text-align` = "right")
   })
 
@@ -293,5 +305,18 @@ server <- function(input, output, session) {
   output$summary_command <- renderText({
     req(rv$result)
     rv$result$command
+  })
+
+  output$summary_stderr <- renderText({
+    req(rv$result)
+    txt <- ""
+    if (!is.null(rv$result$stderr) && nchar(rv$result$stderr) > 0) {
+      txt <- paste0(txt, "=== stderr ===\n", rv$result$stderr, "\n")
+    }
+    if (!is.null(rv$result$stdout) && nchar(rv$result$stdout) > 0) {
+      txt <- paste0(txt, "=== stdout ===\n", rv$result$stdout, "\n")
+    }
+    if (nchar(txt) == 0) txt <- "(no output)"
+    txt
   })
 }

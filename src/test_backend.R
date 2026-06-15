@@ -135,17 +135,17 @@ if (rtkpos_exe == "") {
 
 # Auto-detect RINEX data files in data/ directory
 data_dir <- if (dir.exists("data")) "data" else "../data"
-rover_file <- file.path(data_dir, "rover.obs")
-nav_file   <- file.path(data_dir, "rover.nav")
+rover_file <- file.path(data_dir, "rover_rinex2.obs")
+nav_file   <- file.path(data_dir, "brdc.nav")
 base_file  <- file.path(data_dir, "tmg23590.20o")
 
 # Try to find any .obs and .nav files if specific ones not found
 if (!file.exists(rover_file)) {
-  obs_files <- list.files(data_dir, pattern = "\\.(obs|OBS)$", full.names = TRUE)
+  obs_files <- list.files(data_dir, pattern = "\\.(obs|OBS|[0-9]{2}o)$", full.names = TRUE)
   if (length(obs_files) > 0) rover_file <- obs_files[1]
 }
 if (!file.exists(nav_file)) {
-  nav_files <- list.files(data_dir, pattern = "\\.(nav|NAV|eph|EPH|n|N)$", full.names = TRUE)
+  nav_files <- list.files(data_dir, pattern = "\\.(nav|NAV|eph|EPH|n|N|[0-9]{2}n)$", full.names = TRUE)
   if (length(nav_files) > 0) nav_file <- nav_files[1]
 }
 
@@ -160,7 +160,7 @@ if (!has_rtkpos) {
 } else if (!has_rover || !has_nav) {
   cat("SKIPPED (RINEX data not found in data/ directory)\n")
   cat("  Place RINEX .obs and .nav files in: ", normalizePath(data_dir), "\n")
-  cat("  Expected: rover.obs + rover.nav (or any .obs + .nav pair)\n")
+  cat("  Expected: rover_rinex2.obs + brdc.nav (or any .obs + .nav pair)\n")
 } else {
   base_arg <- if (file.exists(base_file)) base_file else NULL
 

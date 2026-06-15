@@ -20,16 +20,19 @@ ui <- navbarPage(
           fluidRow(
             column(
               width = 5,
-              fileInput("rover_file", "Rover Observation (.obs)",
-                accept = c(".obs", ".OBS", ".rnx", ".RNX", ".o", ".O"),
-                placeholder = "e.g. rover.obs"
+              fileInput("rover_file", "Rover Observation (.obs / .YYo)",
+                accept = c(".obs", ".OBS", ".rnx", ".RNX", ".o", ".O",
+                          ".20o", ".21o", ".22o", ".23o", ".24o"),
+                placeholder = "e.g. tmg23590.20o"
               ),
-              fileInput("nav_file", "Navigation File (.nav / .n)",
-                accept = c(".nav", ".NAV", ".n", ".N", ".eph"),
-                placeholder = "e.g. rover.nav"
+              fileInput("nav_file", "Navigation File (.nav / .n / .YYn)",
+                accept = c(".nav", ".NAV", ".n", ".N", ".eph",
+                          ".20n", ".21n", ".22n", ".23n", ".24n"),
+                placeholder = "e.g. brdc.nav"
               ),
               fileInput("base_file", "Base Station OBS (optional)",
-                accept = c(".obs", ".OBS", ".o", ".O", ".rnx", ".RNX"),
+                accept = c(".obs", ".OBS", ".o", ".O", ".rnx", ".RNX",
+                          ".20o", ".21o", ".22o", ".23o", ".24o"),
                 placeholder = "e.g. tmg23590.20o"
               )
             ),
@@ -324,6 +327,10 @@ ui <- navbarPage(
       wellPanel(
         h4("Command"),
         verbatimTextOutput("summary_command")
+      ),
+      wellPanel(
+        h4("rnx2rtkp Output (stdout/stderr)"),
+        verbatimTextOutput("summary_stderr")
       )
     )
   )
