@@ -5,6 +5,7 @@
 #   shiny::runApp("app.R")
 # =============================================================================
 
+library(shiny)
 options(shiny.maxRequestSize = 100 * 1024 ^ 2)
 
 source("src/rtkpos_backend.R")

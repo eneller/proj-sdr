@@ -13,61 +13,16 @@ server <- function(input, output, session) {
 
   # --- Helper: build params list from UI inputs ---
   build_params <- function() {
-    list(
-      "pos1-posmode"    = input$pos1_posmode,
-      "pos1-frequency"  = input$pos1_frequency,
-      "pos1-soltype"    = input$pos1_soltype,
-      "pos1-elmask"     = as.character(input$pos1_elmask),
-      "pos1-snrmask"    = input$pos1_snrmask,
-      "pos1-dynamics"   = input$pos1_dynamics,
-      "pos1-tidecorr"   = input$pos1_tidecorr,
-      "pos1-ionoopt"    = input$pos1_ionoopt,
-      "pos1-tropopt"    = input$pos1_tropopt,
-      "pos1-sateph"     = input$pos1_sateph,
-      "pos1-navsys"     = as.character(sum(as.integer(input$pos1_navsys))),
-      "pos1-exclsats"   = input$pos1_exclsats,
-      "pos2-armode"     = input$pos2_armode,
-      "pos2-gloarmode"  = input$pos2_gloarmode,
-      "pos2-arthres"    = as.character(input$pos2_arthres),
-      "pos2-arlockcnt"  = as.character(input$pos2_arlockcnt),
-      "pos2-arelmask"   = as.character(input$pos2_arelmask),
-      "pos2-arminfix"   = as.character(input$pos2_arminfix),
-      "pos2-aroutcnt"   = as.character(input$pos2_aroutcnt),
-      "pos2-maxage"     = as.character(input$pos2_maxage),
-      "out-solformat"   = input$out_solformat,
-      "out-outhead"     = input$out_outhead,
-      "out-outopt"      = input$out_outopt,
-      "out-timesys"     = input$out_timesys,
-      "out-timeform"    = input$out_timeform,
-      "out-timendec"    = as.character(input$out_timendec),
-      "out-degform"     = input$out_degform,
-      "out-fieldsep"    = if (nchar(input$out_fieldsep) == 0) " " else input$out_fieldsep,
-      "out-height"      = input$out_height,
-      "out-solstatic"   = input$out_solstatic,
-      "stats-errratio"  = as.character(input$stats_errratio),
-      "stats-errphase"  = as.character(input$stats_errphase),
-      "stats-errphaseel" = as.character(input$stats_errphaseel),
-      "stats-errdoppler" = as.character(input$stats_errdoppler),
-      "stats-stdbias"   = as.character(input$stats_stdbias),
-      "stats-stdiono"   = as.character(input$stats_stdiono),
-      "stats-stdtrop"   = as.character(input$stats_stdtrop),
-      "stats-prnaccelh" = as.character(input$stats_prnaccelh),
-      "stats-prnaccelv" = as.character(input$stats_prnaccelv),
-      "ant1-postype"    = input$ant1_postype,
-      "ant1-pos1"       = as.character(input$ant1_pos1),
-      "ant1-pos2"       = as.character(input$ant1_pos2),
-      "ant1-pos3"       = as.character(input$ant1_pos3),
-      "ant1-antdele"    = as.character(input$ant1_antdele),
-      "ant1-antdeln"    = as.character(input$ant1_antdeln),
-      "ant1-antdelu"    = as.character(input$ant1_antdelu),
-      "ant2-postype"    = input$ant2_postype,
-      "ant2-pos1"       = as.character(input$ant2_pos1),
-      "ant2-pos2"       = as.character(input$ant2_pos2),
-      "ant2-pos3"       = as.character(input$ant2_pos3),
-      "ant2-antdele"    = as.character(input$ant2_antdele),
-      "ant2-antdeln"    = as.character(input$ant2_antdeln),
-      "ant2-antdelu"    = as.character(input$ant2_antdelu)
-    )
+    params <- get_default_params()
+    params[["pos1-posmode"]] <- input$pos1_posmode
+    params[["pos1-elmask"]]  <- as.character(input$pos1_elmask)
+    navsys <- input$pos1_navsys
+    params[["pos1-navsys"]]  <- if (length(navsys) > 0) as.character(sum(as.integer(navsys))) else "1"
+    params[["pos2-armode"]]  <- input$pos2_armode
+    params[["out-solformat"]] <- input$out_solformat
+    params[["out-timesys"]]  <- input$out_timesys
+    params[["out-height"]]   <- input$out_height
+    params
   }
 
   # --- Has data indicator for conditionalPanel ---
