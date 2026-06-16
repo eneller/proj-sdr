@@ -46,6 +46,47 @@ A thin wrapper around the `rnx2rtkp` program is created with a simple function, 
 ```
 
 # Visualization
+Using `ggplot2`, we also provide visualisations for the rover positions.
+```
+plot_trajectory <- function(pos_df, color_by = "Q") {
+  if (nrow(pos_df) == 0) {
+    p <- ggplot2::ggplot() +
+      ggplot2::ggtitle("No data to plot") +
+      ggplot2::theme_minimal()
+    return(p)
+  }
+
+  is_numeric <- is.numeric(pos_df[[color_by]])
+
+  p <- ggplot2::ggplot(pos_df, ggplot2::aes(x = lon, y = lat,
+                                              color = .data[[color_by]])) +
+    ggplot2::geom_path(alpha = 0.4, linewidth = 0.5) +
+    ggplot2::geom_point(size = 1.8, alpha = 0.8)
+
+  if (is_numeric) {
+    p <- p + ggplot2::scale_color_viridis_c(option = "turbo")
+  } else {
+    p <- p + ggplot2::scale_color_viridis_d(option = "turbo")
+  }
+
+  p <- p +
+    ggplot2::coord_quickmap() +
+    ggplot2::labs(
+      title    = "Receiver Trajectory",
+      subtitle = paste(nrow(pos_df), "epochs"),
+      x        = "Longitude (deg)",
+      y        = "Latitude (deg)",
+      color    = color_by
+    ) +
+    ggplot2::theme_minimal() +
+    ggplot2::theme(
+      plot.title    = ggplot2::element_text(hjust = 0.5, face = "bold"),
+      plot.subtitle = ggplot2::element_text(hjust = 0.5, size = 9)
+    )
+
+  return(p)
+}
+```
 
 # User Interface
 A user interface was created using `shiny`.
