@@ -1,0 +1,32 @@
+---
+title: "Topic 3"
+output: beamer_presentation
+date: "2026-06-16"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## Software support for working with the RTKPOST post-processing GNSS SDR in the R environment
+Develop software support in the R environment that will enable the use of
+the functionality of the RTKPOST software tool by calling, configuring and managing
+it using an R script. Implement the software support with an appropriate graphical
+user interface. Describe the method and software support in the technical report of
+the project.
+
+## Screenshot 1
+![](web-setup.png)
+
+## Screenshot 2
+![](web-trajectory.png)
+
+## Screenshot 3
+![](web-height.png)
+
+## Screenshot 4
+![](web-data.png)
+
+## Screenshot 5
+![](web-summary.png)
+
