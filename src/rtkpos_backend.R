@@ -210,7 +210,8 @@ run_rtkpos <- function(rover_obs,
         "C:/RTKLIB/bin/rnx2rtkp.exe",
         "C:/RTKLIB/RTKLIB_EX/bin/rnx2rtkp.exe",
         "C:/Program Files/RTKLIB/bin/rnx2rtkp.exe",
-        "C:/RTKLIB-EX/bin/rnx2rtkp.exe"
+        "C:/RTKLIB-EX/bin/rnx2rtkp.exe",
+        "../RTKLIB/bin/rnx2rtkp"
       )
       for (candidate in candidates) {
         if (file.exists(candidate)) {
