@@ -10,5 +10,4 @@ the project.
 - [RTKLIBExplorer](https://github.com/rtklibexplorer/RTKLIB)
 - [RTKLIB](https://github.com/tomojitakasu/RTKLIB)
 - R Notes for professionals. [Available online.](https://books.goalkicker.com/RBook/)
-
-RTKPOST CLI: RNX2RTKP
+The RTKPOST cli equivalent is rnx2rtkp.

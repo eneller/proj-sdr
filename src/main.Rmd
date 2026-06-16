@@ -9,78 +9,85 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r cli}
-# usage: rnx2rtkp [option]... file file [...]
-#
-#  Read RINEX OBS/NAV/GNAV/HNAV/CLK, SP3, SBAS message log files and compute
-#  receiver (rover) positions and output position solutions.
-#  The first RINEX OBS file shall contain receiver (rover) observations. For the
-#  relative mode, the second RINEX OBS file shall contain reference
-#  (base station) receiver observations. At least one RINEX NAV/GNAV/HNAV
-#  file shall be included in input files. To use SP3 precise ephemeris, specify
-#  the path in the files. The extension of the SP3 file shall be .sp3 or .eph.
-#  All of the input file paths can include wild-cards (*). To avoid command
-#  line deployment of wild-cards, use "..." for paths with wild-cards.
-#  Command line options are as follows ([]:default). A maximum number of
-#  input files is currently set to 16. With -k option, the
-#  processing options are input from the configuration file. In this case,
-#  command line options precede options in the configuration file.
-
-
-# -?        print help
-#  -k file   input options from configuration file [off]
-#  -o file   set output file [stdout]
-#  -ts ds ts start day/time (ds=y/m/d ts=h:m:s) [obs start time]
-#  -te de te end day/time   (de=y/m/d te=h:m:s) [obs end time]
-#  -ti tint  time interval (sec) [all]
-#  -p mode   mode (0:single,1:dgps,2:kinematic,3:static,4:static-start,
-#                  5:moving-base,6:fixed,7:ppp-kinematic,8:ppp-static,9:ppp-fixed) [2]
-#  -m mask   elevation mask angle (deg) [15]
-#  -sys s[,s...] nav system(s) (s=G:GPS,R:GLO,E:GAL,J:QZS,C:BDS,I:IRN) [G|R]
-#  -f freq   number of frequencies for relative mode (1:L1,2:L1+L2,3:L1+L2+L5) [2]
-#  -v thres  validation threshold for integer ambiguity (0.0:no AR) [3.0]
-#  -b        backward solutions [off]
-#  -c        forward/backward combined solutions [off]
-#  -i        instantaneous integer ambiguity resolution [off]
-#  -h        fix and hold for integer ambiguity resolution [off]
-#  -bl bl,std     baseline distance and stdev
-#  -e        output x/y/z-ecef position [latitude/longitude/height]
-#  -a        output e/n/u-baseline [latitude/longitude/height]
-#  -n        output NMEA-0183 GGA sentence [off]
-#  -g        output latitude/longitude in the form of ddd mm ss.ss' [ddd.ddd]
-#  -t        output time in the form of yyyy/mm/dd hh:mm:ss.ss [sssss.ss]
-#  -u        output time in utc [gpst]
-#  -d col    number of decimals in time [3]
-#  -s sep    field separator [' ']
-#  -r x y z  reference (base) receiver ecef pos (m) [average of single pos]
-#            rover receiver ecef pos (m) for fixed or ppp-fixed mode
-#  -l lat lon hgt reference (base) receiver latitude/longitude/height (deg/m)
-#            rover latitude/longitude/height for fixed or ppp-fixed mode
-#  -y level  output solution status (0:off,1:states,2:residuals) [0]
-#  -x level  debug trace level (0:off) [0]
-#  --rover list rover names for processing, separated by a space
-#  --base list  base names for processing, separated by a space
-#  --version display release version
-
 #' @title rnx2rtkp Wrapper Class
-#' @description An S3 class to wrap the `rnx2rtkp` CLI tool for rnx post-processing.
+#' @description wrapper for the `rnx2rtkp` CLI tool for rnx post-processing.
+#' @param cli_path path to the `rnx2rtkp` executable
+#' @param help Flag to print help
+#' @param files a list of input files
+#' @param config_file
 rnx2rtkp <- function(
-  cli_path = "rnx2rtkp"
+  cli_path = "rnx2rtkp",
+  help = FALSE,
+  files,
+  config_file = NULL,
+  output_file,
+  time_start,
+  time_end,
+  time_interval,
+  mode,
+  mask,
+  system,
+  freqeuncies,
+  threshold,
+  backward = FALSE,
+  forward = FALSE,
+  instantaneous = FALSE,
+  hold = FALSE,
+  baseline,
+  e,a,n,g,t,u,
+  decimals,
+  separator,
+  r,
+  l,
+  y,
+  debug,
+  rover,
+  base,
+  version
   ){
-  structure(
-    list(
-      cli_path = cli_path,
-      result = NULL
-    ),
-    class = "rnx2rtkp"
-  )
-}
+  args <- character()
+  if(help){ args <- append(args, '-?') }
+  if (!all(file.exists(files))) {
+    stop("Input file(s) do not exist: ", paste(files[!file.exists(files)], collapse = ", "))
+  }
+  if(!is.null(config_file)){
+    if(!file.exists(config_file)){
+      stop("Config file does not exist: ", config_file)
+    }
+    args <- append(args, paste('-k', config_file))
+  }
+  if(output_file){ args <- append(args, paste('-o', output_file)) }
+  if(time_start){ args <- append(args, paste('-ts', time_start)) }
+  if(time_end){ args <- append(args, paste('-te', time_end)) }
+  if(time_interval){ args <- append(args, paste('-ti', time_interval)) }
+  args <- append(args, paste('-p', mode))
+  args <- append(args, paste('-m', mask))
+  args <- append(args, paste('-sys', system))
+  args <- append(args, paste('-f', freqeuncies))
+  args <- append(args, paste('-v', threshold))
+  if(backward){  args <- append(args,'-b')}
+  if(forward){  args <- append(args,'-c')}
+  if(backward){  args <- append(args,'-b')}
+  if(instantaneous){  args <- append(args,'-i')}
+  if(hold){  args <- append(args,'-h')}
+  args <- append(args, paste('-bl', baseline))
+  if(e){  args <- append(args,'-e')}
+  if(a){  args <- append(args,'-a')}
+  if(n){  args <- append(args,'-n')}
+  if(g){  args <- append(args,'-g')}
+  if(t){  args <- append(args,'-t')}
+  if(u){  args <- append(args,'-u')}
+  if(decimals){ args <- append(args, paste('-d', decimals)) }
+  if(separator){ args <- append(args, paste('-s', separator)) }
+  args <- append(args, paste('-r', r))
+  args <- append(args, paste('-l', l))
+  if(y){ args <- append(args, paste('-y', y)) }
+  if(x){ args <- append(args, paste('-x', x)) }
+  if(rover){ args <- append(args, paste('--rover', rover)) }
+  if(base){ args <- append(args, paste('--base', base)) }
 
-#' @title Run rnx2rtkp using the previously set configuration
-#' @param x An `rnx2rtkp` object.
-#' @return The output of the `rnx2rtkp` call provided by `stdout` and `stderr`
-# TODO also provide return code
-run.rnx2rtkp <- function(x){
-  output <- system2(x$cli_path, '--help', stdout= TRUE, stderr = TRUE)
+  # TODO also provide return code
+  output <- system2(cli_path, args, stdout= TRUE, stderr = TRUE)
   return(output)
 }
 
@@ -89,6 +96,5 @@ run.rnx2rtkp <- function(x){
 
 ```{r demo-cli}
 cli_path <- '../../RTKLIB/bin/rnx2rtkp'
-cli <- rnx2rtkp(cli_path)
-run.rnx2rtkp(cli)
+rnx2rtkp(cli_path= cli_path, files = c('main.Rmd'))
 ```
